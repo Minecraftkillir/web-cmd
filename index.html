@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command Prompt</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #cmd {
+      height: 100vh;
+      overflow-y: scroll;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+
+    #cmd-input-container {
+      display: flex;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: black;
+      color: #00ff00;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      border: none;
+      outline: none;
+    }
+
+    #cmd-input-prefix {
+      color: #00ff00;
+      margin-right: 5px;
+    }
+
+    #cmd-input {
+      flex-grow: 1;
+      background-color: transparent;
+      color: #00ff00;
+      border: none;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="cmd"></div>
+  <div id="cmd-input-container">
+    <span id="cmd-input-prefix">$</span>
+    <input id="cmd-input" type="text" autofocus onkeydown="handleKeyDown(event)">
+  </div>
+  <script>
+    const cmdDiv = document.getElementById('cmd');
+    const cmdInput = document.getElementById('cmd-input');
+
+    function handleKeyDown(event) {
+      if (event.key === 'Enter') {
+        const command = cmdInput.value;
+        executeCommand(command);
+        cmdInput.value = '';
+      }
+    }
+
+    function executeCommand(command) {
+      fetch('/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          cmdDiv.innerHTML += `\n$ ${command}\n${data.output}`;
+          cmdDiv.scrollTop = cmdDiv.scrollHeight; // Ensure the scroll position is updated
+
+          if (data.clearScreen) {
+            // Reload the page to simulate clearing the screen
+            location.reload();
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+  </script>
+</body>
+</html>
